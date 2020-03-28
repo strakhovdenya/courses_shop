@@ -2,6 +2,7 @@ const express = require('express')
 const path = require('path')
 const mongoose = require('mongoose')
 const exphb = require('express-handlebars')
+const session = require('express-session')
 const homeRoutes = require('./routes/home')
 const addRoutes = require('./routes/add')
 const coursesRoutes = require('./routes/courses')
@@ -11,6 +12,7 @@ const authRoutes = require('./routes/auth')
 const Handlebars = require('handlebars')
 const { allowInsecurePrototypeAccess } = require('@handlebars/allow-prototype-access')
 const User = require('./models/user')
+const varMiddleware =require('./middleware/variables')
 
 
 const app = express()
@@ -24,10 +26,10 @@ app.engine('hbs', hbs.engine)
 app.set('view engine', 'hbs')
 app.set('views', 'views')
 
-app.use(async(req,res,next)=>{
+app.use(async (req, res, next) => {
     try {
         const user = await User.findById('5e7d0d84aa600d37747ccad3')
-        req.user = user 
+        req.user = user
         next()
     } catch (e) {
         console.log(e);
@@ -36,6 +38,12 @@ app.use(async(req,res,next)=>{
 
 app.use(express.static(path.join(__dirname, 'public')))
 app.use(express.urlencoded({ extended: true }))
+app.use(session({
+    secret: 'secret value',
+    resave: false,
+    saveUninitialized: false
+}))
+app.use(varMiddleware)
 
 app.use('/', homeRoutes)
 app.use('/add', addRoutes)
