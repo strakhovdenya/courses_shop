@@ -1,11 +1,11 @@
-const toCurrency = price =>{
+const toCurrency = price => {
     return new Intl.NumberFormat('ru', {
         currency: 'UAH',
         style: 'currency'
     }).format(price)
 }
 
-const toDate = date =>{
+const toDate = date => {
     return new Intl.DateTimeFormat('ru', {
         day: '2-digit',
         month: 'long',
@@ -29,12 +29,16 @@ if ($card) {
     $card.addEventListener('click', event => {
         if (event.target.classList.contains('js-remove')) {
             const id = event.target.dataset.id
+            const csrf = event.target.dataset.csrf
             fetch('/card/remove/' + id, {
-                method: 'delete'
+                method: 'delete',
+                headers: {
+                    'X-XSRF-TOKEN': csrf
+                }
             }).then(res => res.json())
                 .then(card => {
-                    if(card.courses.length){
-                        const html =  card.courses.map(c=>{
+                    if (card.courses.length) {
+                        const html = card.courses.map(c => {
                             return `
                             <tr>
                                 <td>${c.title}</td>
@@ -47,7 +51,7 @@ if ($card) {
                         }).join('')
                         $card.querySelector('tbody').innerHTML = html
                         $card.querySelector('.price').textContent = toCurrency(card.price)
-                    }else{
+                    } else {
                         $card.innerHTML = '<p>Корзина пуста</p>'
                     }
                 })

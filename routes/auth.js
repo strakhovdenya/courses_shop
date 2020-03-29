@@ -33,14 +33,13 @@ router.post('/login', async (req, res) => {
                     if (err) {
                         throw err
                     }
-                    res.redirect('/')
+                     res.redirect('/')
                 })
-            } else {
-                res.redirect('/auth/login#login')
+                return
             }
-        } else {
-            res.redirect('/auth/login#login')
         }
+        res.redirect('/auth/login#login')
+
     } catch (e) {
         console.log(e);
     }
