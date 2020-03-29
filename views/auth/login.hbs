@@ -31,6 +31,13 @@
             <form action="/auth/register" method="POST">
 
                 <div class="input-field">
+                    <input id="name" name="name" type="text" class="validate" required>
+                    <label for="name">Ваше имя</label>
+                    <span class="helper-text" data-error="Введите имя"></span>
+                </div>
+
+
+                <div class="input-field">
                     <input id="remail" name="email" type="email" class="validate" required>
                     <label for="remail">e-mail</label>
                     <span class="helper-text" data-error="Введите email"></span>
@@ -43,9 +50,9 @@
                 </div>
 
                 <div class="input-field">
-                    <input id="confirn" name="confirn" type="password" class="validate" required>
-                    <label for="confirn">Пароль еще раз</label>
-                    <span class="helper-text" data-error="Введите пароль"></span>
+                    <input id="confirm" name="confirm" type="password" class="validate" required>
+                    <label for="confirm">Пароль еще раз</label>
+                    <span class="helper-text" data-error="Введите пароль повторно"></span>
                 </div>
 
                 <button class="btn btn-primary" type="submit">Зарегистрироваться</button>
