@@ -1,15 +1,17 @@
 const { Router } = require('express')
 const bcrypt = require('bcryptjs')
 const router = Router()
+const crypto = require('crypto')
 const nodemailer = require('nodemailer')
 const sendgrid = require('nodemailer-sendgrid-transport')
 const User = require('./../models/user')
 const keys = require('../keys')
 const regEmail = require('../emails/registration')
-const sgMail = require('@sendgrid/mail');
+const resetEmail = require('../emails/reset')
+// const sgMail = require('@sendgrid/mail');
 
 
-sgMail.setApiKey(keys.SENDGRID_API_KEY);
+// sgMail.setApiKey(keys.SENDGRID_API_KEY);
 const transporter = nodemailer.createTransport(sendgrid({
     auth: { api_key: keys.SENDGRID_API_KEY }
 }))
@@ -79,10 +81,45 @@ router.post('/register', async (req, res) => {
             })
 
             await user.save()
-           
-            await sgMail.send(regEmail(email))
             res.redirect('/auth/login#login')
+            await transporter.sendMail(regEmail(email))
+
         }
+    } catch (e) {
+        console.log(e);
+    }
+})
+
+router.get('/reset', (req, res) => {
+    res.render('auth/reset', {
+        title: 'Забыли пароль',
+        error: req.flash('error')
+    })
+})
+
+router.post('/reset', (req, res) => {
+    try {
+        crypto.randomBytes(32, async (err, buffer) => {
+            if (err) {
+
+                req.flash('error', 'Что-топошло не так, повторите попытку позже')
+                return res.redirect('/auth/reset')
+            }
+
+            const token = buffer.toString('hex')
+
+            const candidate = await User.findOne({ email: req.body.email })
+            if (candidate) {
+                candidate.resetToken = token,
+                    candidate.resetTokenExp = Date.now() + 60 * 60 * 1000
+                    await candidate.save()
+                    await transporter.sendMail(resetEmail(candidate.email, token))
+                    res.redirect('/auth/login')
+            } else {
+                req.flash('error', 'Такого email нет')
+                return res.redirect('/auth/reset')
+            }
+        })
     } catch (e) {
         console.log(e);
     }
