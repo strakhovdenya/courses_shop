@@ -110,16 +110,68 @@ router.post('/reset', (req, res) => {
 
             const candidate = await User.findOne({ email: req.body.email })
             if (candidate) {
-                candidate.resetToken = token,
-                    candidate.resetTokenExp = Date.now() + 60 * 60 * 1000
-                    await candidate.save()
-                    await transporter.sendMail(resetEmail(candidate.email, token))
-                    res.redirect('/auth/login')
+                candidate.resetToken = token
+                candidate.resetTokenExp = Date.now() + 60 * 60 * 1000
+                await candidate.save()
+                await transporter.sendMail(resetEmail(candidate.email, token))
+                res.redirect('/auth/login')
             } else {
                 req.flash('error', 'Такого email нет')
                 return res.redirect('/auth/reset')
             }
         })
+    } catch (e) {
+        console.log(e);
+    }
+})
+
+router.get('/password/:token', async (req, res) => {
+    if (!req.params.token) {
+        return res.redirect('/auth/login')
+    }
+
+    try {
+        const user = await User.findOne({
+            resetToken: req.params.token,
+            resetTokenExp: { $gt: Date.now() }
+        })
+
+        if (!user) {
+            return res.redirect('/auth/login')
+        } else {
+            res.render('auth/password', {
+                title: 'Восстановить доступ',
+                error: req.flash('error'),
+                userId: user._id.toString(),
+                token: req.params.token
+            })
+        }
+
+
+    } catch (e) {
+        console.log(e);
+    }
+
+})
+
+router.post('/password', async (req, res) => {
+    try {
+        console.log(req.body);
+        const user = await User.findOne({
+            _id: req.body.userId,
+            resetToken: req.body.token,
+            resetTokenExp: { $gt: Date.now() }
+        })
+        if (user) {
+            user.password = await bcrypt.hash(req.body.password, 10)
+            user.resetToken = undefined
+            user.resetTokenExp = undefined
+            await user.save()
+            res.redirect('/auth/login')
+        } else {
+            req.flash('loginError', 'Время жизни токена истекло')
+            res.redirect('/auth/login')
+        }
     } catch (e) {
         console.log(e);
     }

@@ -9,7 +9,7 @@ module.exports = function (email, token) {
             <h1>Вы забыли пароль?</h1>
             <p>Если нет, то проигнорируйте это письмо</p>
             <p>Иначе нажмите на ссылку ниже:</p>
-            <p><a href="${keys.BASE_URL}/auth/password/${toket}">Восстановить доступ</a></p>
+            <p><a href="${keys.BASE_URL}/auth/password/${token}">Восстановить доступ</a></p>
 
         `
     }
